@@ -29,6 +29,8 @@ class ParticleSystem(private val konfettiView: KonfettiView) {
     private var shapes: Array<Shape> = arrayOf(Shape.Square)
     private var confettiConfig = ConfettiConfig()
 
+    fun getDelay() = confettiConfig.delay
+
     /**
      * Implementation of [BurstEmitter] or [StreamEmitter]
      * Render function of the renderSystem is directly accessed from [KonfettiView]
@@ -137,11 +139,62 @@ class ParticleSystem(private val konfettiView: KonfettiView) {
     }
 
     /**
+     * Set a maximum acceleration that can be added to the velocity of the particle.
+     * This way the particle can't accelerate faster than the max speed + max acceleration
+     */
+    fun setMaxAcceleration(maxAcceleration: Float): ParticleSystem {
+        velocity.maxAcceleration = maxAcceleration / 10
+        return this
+    }
+
+    /**
+     * Enable or disable the 3D rotation of the particle
+     */
+    fun setRotationEnabled(enabled: Boolean): ParticleSystem {
+        confettiConfig.rotate = enabled
+        return this
+    }
+
+    /**
+     * Set a multiplier for the rotation speed of the particles if rotation is enabled
+     */
+    fun setRotationSpeedMultiplier(multiplier: Float): ParticleSystem {
+        require(multiplier >= 0f) { "multiplier ($multiplier) must be greater or equal to 0" }
+        velocity.baseRotationMultiplier = multiplier
+        return this
+    }
+
+    /**
+     * Set a rotation speed variance in percent on the multiplier
+     */
+    fun setRotationSpeedVariance(variance: Float): ParticleSystem {
+        require(variance in 0f..1f) { "variance ($variance) must be in the range 0..1" }
+        velocity.rotationVariance = variance
+        return this
+    }
+
+    /**
+     * Enable or disable the acceleration of the particle
+     */
+    fun setAccelerationEnabled(enabled: Boolean): ParticleSystem {
+        confettiConfig.accelerate = enabled
+        return this
+    }
+
+    /**
      * Set if the confetti should fade out when its
      * time to live is expired
      */
     fun setFadeOutEnabled(fade: Boolean): ParticleSystem {
         confettiConfig.fadeOut = fade
+        return this
+    }
+
+    /**
+     * Add a delay before this ParticleSystem will be triggered in milliseconds
+     */
+    fun setDelay(delay: Long): ParticleSystem {
+        confettiConfig.delay = delay
         return this
     }
 
@@ -175,7 +228,8 @@ class ParticleSystem(private val konfettiView: KonfettiView) {
         replaceWith = ReplaceWith(
             expression = "streamFor(particlesPerSecond, emittingTime)",
             imports = ["nl.dionsegijn.konfetti.ParticleSystem.streamFor"]
-        ))
+        )
+    )
     fun stream(particlesPerSecond: Int, emittingTime: Long) {
         val stream = StreamEmitter().build(particlesPerSecond = particlesPerSecond, emittingTime = emittingTime)
         startRenderSystem(stream)
@@ -203,7 +257,8 @@ class ParticleSystem(private val konfettiView: KonfettiView) {
         replaceWith = ReplaceWith(
             expression = "streamMaxParticles(particlesPerSecond, maxParticles)",
             imports = ["nl.dionsegijn.konfetti.ParticleSystem.streamMaxParticles"]
-        ))
+        )
+    )
     fun stream(particlesPerSecond: Int, maxParticles: Int) {
         val stream = StreamEmitter().build(particlesPerSecond = particlesPerSecond, maxParticles = maxParticles)
         startRenderSystem(stream)

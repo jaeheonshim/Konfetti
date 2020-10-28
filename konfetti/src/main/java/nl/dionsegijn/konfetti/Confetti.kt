@@ -6,8 +6,8 @@ import android.graphics.Paint
 import nl.dionsegijn.konfetti.models.Shape
 import nl.dionsegijn.konfetti.models.Size
 import nl.dionsegijn.konfetti.models.Vector
-import kotlin.random.Random
 import kotlin.math.abs
+import kotlin.random.Random
 
 class Confetti(
     var location: Vector,
@@ -17,14 +17,18 @@ class Confetti(
     var lifespan: Long = -1L,
     val fadeOut: Boolean = true,
     private var acceleration: Vector = Vector(0f, 0f),
-    var velocity: Vector = Vector()
+    var velocity: Vector = Vector(),
+    val rotate: Boolean = true,
+    val accelerate: Boolean = true,
+    val maxAcceleration: Float = -1f,
+    val rotationSpeedMultiplier: Float = 1f
 ) {
 
     private val mass = size.mass
     private var width = size.sizeInPx
     private val paint: Paint = Paint()
 
-    private var rotationSpeed = 1f
+    private var rotationSpeed = 0f
     private var rotation = 0f
     private var rotationWidth = width
 
@@ -36,7 +40,9 @@ class Confetti(
     init {
         val minRotationSpeed = 0.29f * Resources.getSystem().displayMetrics.density
         val maxRotationSpeed = minRotationSpeed * 3
-        rotationSpeed = maxRotationSpeed * Random.nextFloat() + minRotationSpeed
+        if (rotate) {
+            rotationSpeed = (maxRotationSpeed * Random.nextFloat() + minRotationSpeed) * rotationSpeedMultiplier
+        }
         paint.color = color
     }
 
@@ -56,7 +62,9 @@ class Confetti(
     }
 
     private fun update(deltaTime: Float) {
-        velocity.add(acceleration)
+        if (accelerate && (acceleration.y < maxAcceleration || maxAcceleration == -1f)) {
+            velocity.add(acceleration)
+        }
 
         val v = velocity.copy()
         v.mult(deltaTime * speedF)

@@ -23,8 +23,14 @@ class RenderSystem(
     private val shapes: Array<Shape>,
     private val colors: IntArray,
     private val config: ConfettiConfig,
-    private val emitter: Emitter
+    private val emitter: Emitter,
+    val createdAt: Long = System.currentTimeMillis()
 ) {
+
+    /**
+     * Whether the render system is allowed to add more confetti
+     */
+    var enabled = true
 
     private val random = Random()
     private var gravity = Vector(0f, 0.01f)
@@ -35,19 +41,39 @@ class RenderSystem(
     }
 
     private fun addConfetti() {
-        particles.add(Confetti(
+        particles.add(
+            Confetti(
                 location = Vector(location.x, location.y),
                 size = sizes[random.nextInt(sizes.size)],
-                shape = shapes[random.nextInt(shapes.size)],
+                shape = getRandomShape(),
                 color = colors[random.nextInt(colors.size)],
                 lifespan = config.timeToLive,
                 fadeOut = config.fadeOut,
-                velocity = this.velocity.getVelocity())
+                velocity = this.velocity.getVelocity(),
+                rotate = config.rotate,
+                maxAcceleration = velocity.maxAcceleration,
+                accelerate = config.accelerate,
+                rotationSpeedMultiplier = velocity.getRotationSpeedMultiplier()
+            )
         )
     }
 
+    /**
+     * When the shape is a DrawableShape, mutate the drawable so that all drawables
+     * have different values when drawn on the canvas.
+     */
+    private fun getRandomShape(): Shape {
+        return when (val shape = shapes[random.nextInt(shapes.size)]) {
+            is Shape.DrawableShape -> {
+                val mutatedState = shape.drawable.constantState?.newDrawable()?.mutate() ?: shape.drawable
+                shape.copy(drawable = mutatedState)
+            }
+            else -> shape
+        }
+    }
+
     fun render(canvas: Canvas, deltaTime: Float) {
-        emitter.createConfetti(deltaTime)
+        if (enabled) emitter.createConfetti(deltaTime)
 
         for (i in particles.size - 1 downTo 0) {
             val particle = particles[i]
@@ -59,5 +85,6 @@ class RenderSystem(
 
     fun getActiveParticles(): Int = particles.size
 
-    fun isDoneEmitting(): Boolean = emitter.isFinished() && particles.size == 0
+    fun isDoneEmitting(): Boolean =
+        (emitter.isFinished() && particles.size == 0) || (!enabled && particles.size == 0)
 }

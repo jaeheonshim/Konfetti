@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: "com.diffplug.gradle.spotless"
+apply plugin: "com.diffplug.spotless"
 
 ext {
     bintrayRepo = 'maven'
@@ -9,7 +9,7 @@ ext {
 
     publishedGroupId = 'nl.dionsegijn'
     artifact = 'konfetti'
-    libraryVersion = "1.2.0"
+    libraryVersion = "1.2.5"
 
     libraryName = 'konfetti'
     libraryDescription = 'Lightweight particle system to celebrate with confetti in your app'
@@ -62,8 +62,8 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'org.mockito:mockito-core:3.3.3'
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'org.mockito:mockito-core:3.6.0'
 }
 
 apply from: rootProject.file('gradle/install-v1.gradle')
